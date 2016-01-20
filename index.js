@@ -147,9 +147,6 @@ function _createXHR(options) {
         if(options.onload) options.onload.apply(xhr, arguments);
     }
 
-    // IE9 must have onprogress be set to a unique function.
-    function progressFunc (evt) { }
-
     var key
     var aborted
     var uri = xhr.url = options.uri || options.url
@@ -169,10 +166,17 @@ function _createXHR(options) {
         }
     }
 
-    xhr.onreadystatechange = options.onprogress || readystatechange
+    xhr.onreadystatechange = options.onreadystatechange || readystatechange
     xhr.onload = loadFunc
     xhr.onerror = errorFunc
-    xhr.onprogress = options.onprogress || progressFunc
+
+    // IE9 must have onprogress be set to a unique function.
+    function progressFunc (evt) { }
+    xhr.onprogress = progressFunc
+    if(options.onprogress)
+      xhr.addEventListener("progress", options.onprogress)
+
+
     xhr.ontimeout = options.ontimeout || errorFunc
     xhr.open(method, uri, !sync, options.username, options.password)
     //has to be after open
