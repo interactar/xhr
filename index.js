@@ -58,6 +58,16 @@ function _createXHR(options) {
     }
     callback = once(callback)
 
+    var xhr = options.xhr || null
+
+    if (!xhr) {
+        if (options.cors || options.useXDR) {
+            xhr = new createXHR.XDomainRequest()
+        }else{
+            xhr = new createXHR.XMLHttpRequest()
+        }
+    }
+
     function readystatechange() {
         if (xhr.readyState === 4) {
             loadFunc()
@@ -99,6 +109,8 @@ function _createXHR(options) {
         }
         evt.statusCode = 0
         callback(evt, failureResponse)
+
+        if(options.onerror) options.onerror.call(xhr,arguments);
     }
 
     // will load the data & process the response in a special response object
@@ -132,17 +144,11 @@ function _createXHR(options) {
         }
         callback(err, response, response.body)
 
+        if(options.onload) options.onload.call(xhr, arguments);
     }
 
-    var xhr = options.xhr || null
-
-    if (!xhr) {
-        if (options.cors || options.useXDR) {
-            xhr = new createXHR.XDomainRequest()
-        }else{
-            xhr = new createXHR.XMLHttpRequest()
-        }
-    }
+    // IE9 must have onprogress be set to a unique function.
+    function progressFunc (evt) { }
 
     var key
     var aborted
@@ -163,14 +169,11 @@ function _createXHR(options) {
         }
     }
 
-    xhr.onreadystatechange = readystatechange
+    xhr.onreadystatechange = options.onprogress || readystatechange
     xhr.onload = loadFunc
     xhr.onerror = errorFunc
-    // IE9 must have onprogress be set to a unique function.
-    xhr.onprogress = function () {
-        // IE must die
-    }
-    xhr.ontimeout = errorFunc
+    xhr.onprogress = options.onprogress || progressFunc
+    xhr.ontimeout = options.ontimeout || errorFunc
     xhr.open(method, uri, !sync, options.username, options.password)
     //has to be after open
     if(!sync) {
