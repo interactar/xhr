@@ -110,7 +110,7 @@ function _createXHR(options) {
         evt.statusCode = 0
         callback(evt, failureResponse)
 
-        if(options.onerror) options.onerror.call(xhr,arguments);
+        if(options.onerror) options.onerror.apply(xhr,arguments);
     }
 
     // will load the data & process the response in a special response object
@@ -144,7 +144,7 @@ function _createXHR(options) {
         }
         callback(err, response, response.body)
 
-        if(options.onload) options.onload.call(xhr, arguments);
+        if(options.onload) options.onload.apply(xhr, arguments);
     }
 
     // IE9 must have onprogress be set to a unique function.
